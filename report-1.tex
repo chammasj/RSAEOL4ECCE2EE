@@ -1,0 +1,224 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{Evaluation of ECC vs RSA Algorithms\\}
+
+\author{\IEEEauthorblockN{1\textsuperscript{st} Domenic Akrawi}
+\IEEEauthorblockA{\textit{School of Engineering and Computer Science} \\
+\textit{Oakland University}\\
+Auburn Hills, United States \\
+domenicakrawi@gmail.com}
+\and
+\IEEEauthorblockN{2\textsuperscript{nd} Joseph Chammas}
+\IEEEauthorblockA{\textit{School of Engineering and Computer Science} \\
+\textit{Oakland University}\\
+Auburn Hills, United States \\
+studentchammas@gmail.com}
+\and[\hfill\mbox{}\par\vspace{1em}\mbox{}\hfill]
+\IEEEauthorblockN{3\textsuperscript{rd} Joshua Pokorzynski}
+\IEEEauthorblockA{\textit{School of Engineering and Computer Science} \\
+\textit{Oakland University}\\
+Auburn Hills, United States \\
+joshuapokorzynski@gmail.com}
+}
+
+\maketitle
+
+\begin{abstract}
+The purpose of this report is to provide insight into the tradeoffs between Rivest-Shamir-Adleman (RSA) and elliptic curve (ECC) cryptography regarding security and performance. This has been driven by the requirement to know whether smaller key sizes provided by ECC are a sufficient reason to switch from current RSA infrastructure. The mathematical basis behind factoring integers and solving the elliptic curve discrete logarithm problem is presented. A repeatable methodology was formed for generating keys, creating and verifying digital signatures. Preliminary performance benchmarks were completed to compare key generation, signing and verification at equivalent levels of classical security. Differences in key and signature size were also taken into account. Interoperability and complexity were considered along with the impact quantum computing could have on both algorithms. Our current results provide a first comparison based on well known standards. Cross-hardware comparison benchmarks have not yet been run. The aim of this paper is to provide a real world scenario that can be used to determine whether RSA, ECC, or quantum-safe algorithms should be chosen. 
+\end{abstract}
+
+\begin{IEEEkeywords}
+Elliptic curve cryptography, RSA, digital signatures, public-key cryptography, performance benchmarking, post-quantum cryptography.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Public key cryptography can be used for authentication, digital signing, key exchange and secure communications. RSA has been widely used for many years and is therefore highly compatible. However, elliptic curve methods often allow similar classical security using far fewer key sizes. The question then becomes, does the increase in speed give a large enough improvement in latency, bandwidth, storage and manageability to offset the cost of transitioning to a new algorithm?
+
+This project looks at three questions. 1. What is the difference between RSA and ECC when they have equivalent security strength? 2. How consistent are these differences across different devices and workloads? 3. When should an organization choose to stay with RSA, transition to ECC or plan to move to post quantum cryptography? This project evaluates how the two algorithms perform on digital signing and key generation. The reported benchmarks provide an initial performance comparison, while differences across devices has not yet been tested. Encryption and key exchange are not directly comparable so are discussed separately. 
+
+
+\section{Cryptographic Background}
+
+\subsection{RSA}
+
+RSA exploits the mathematical intractability of factorizing a sufficiently large composite modulus formed by multiplying two private primes. A private exponent is used to generate an RSA signature whilst the public exponent is used to generate an RSA signature whilst the public exponent performs verification. As long as keys are correctly generated, including correct padding, hashing and implementation, an RSA signature will be secure. When comparing signature schemes today it would be better to use RSA-PSS \cite{b1} instead of textbook RSA. RSA can be fast to verify using a public key with a commonly small public exponent. However, it can be costly to sign using a private key and generate keys.  
+
+\subsection{ECC}
+
+ECC uses mathematical operations using points on an appropriate elliptic curve over a finite field. Security relies on the difficulty of determining a private scalar from a public point (known as the elliptic curve discrete logarithm problem). For creating digital signatures there is a standard algorithm called the Elliptic Curve Digital Signature Algorithm \cite{b1} (ECDSA). ECC is actually a family of algorithms. ECDSA provides digital signing but elliptic curve Diffe-Hellman provides secret sharing. These two should not be confused. 
+
+\subsection{Matched Classical Security}
+
+Important notes on meaningful comparisons. The RSA-3072 algorithm can be said to have an equivalent ‘security strength’ of ~128-bits (classical) according to NIST guidelines. Likewise, the elliptic curve variants can be considered to have a ~256-bit security strength due to the subgroup order \cite{b2}. The RSA-2048 algorithm is often associated with an ~112-bit security strength and should be noted as a separate lower security baseline. The main comparison within this study is between the RSA-3072 and ECDSA P-256 algorithms. If results for the RSA-2048 are included, they must be noted as a separate lower security baseline.
+
+\section{Related Work and Practical Considerations}
+
+Research has been done into cracking RSA using weak parameters, implementation errors and the performance of large integer operations. In Boneh an overview of historic attacks on RSA is given \cite{b3} and Bos et al look at how ECC is used in real world systems \cite{b4}.
+ECC can help reduce the size of public keys and signatures. This may be important in systems where they are constrained such as embedded devices, certificates and limited links. However, there are other factors to consider when choosing whether to use ECC. These include having a library available, hardware acceleration, certificate ecosystems and backwards compatibility with existing clients. Generating keys more quickly or having smaller signatures doesn’t necessarily mean that the whole application will be faster.
+
+\section{Experimental Methodology}\label{AA}
+
+\subsection{Test Design}
+
+The first set of tests have been completed for RSA and ECC. The reported comparisons cover RSA-3072 and ECDSA P-256, RSA-7680 and ECDSA P-384, and RSA-15360 and ECDSA P-521 at matched classical security levels. Key generation, signing and verification are analyzed as separate operations, and the tables report median time per operation. Cross-hardware comparison benchmarks have not yet been run. For reproducibility, comparisons should use the same message bytes and similar APIs, include warm-up iterations and repeated independent batches, and document the spread and number of trials.
+
+\subsection{Environment and Noise Control}
+
+The CPU model, number of cores, operating system, crypto library, version, runtime, power plan and if acceleration is enabled should be recorded. Noise should be reduced by not running any intensive processes at the same time. The tests should be run under the same power plan where possible. They should be run multiple times once the CPU has warmed up. The algorithms should be alternated to help avoid any systematic errors due to thermal or workloads. As there are different costs associated with key generation and signing they are analyzed separately.
+
+\subsection{Metrics and Reproducibility}
+
+Time measurements: Key generation time, signing time and verifying time. All times given in milliseconds. Space measurements: Encoded public key size and encoded signature size, in bytes. Encoding should be specified (e.g. DER, fixed width raw). Maximum memory consumed can be provided if measured consistently. Raw data for batch times and scripts used to produce results should be retained to support reproducibility. The tables report median timings. Both mean and median should be reported alongside the spread and number of trials to help identify outliers and skewness.
+
+\subsection{Threats to Validity}
+
+Several other factors that may affect the results have to be considered, such as background processes, CPU frequency scaling, randomness, different key generation methods, different language bindings, hardware acceleration, optimized libraries and encoding overhead. Cross-hardware comparison benchmarks have not yet been run, so the results cannot be assumed to generalize to other devices. Where possible the statistical uncertainty should be displayed.
+
+\section{Comparative Analysis}
+
+
+Tables~\ref{tab:cmp128}--\ref{tab:cmp256} and
+Figs.~\ref{fig:time128}--\ref{fig:time256} compare RSA and ECC at matched
+128-, 192-, and 256-bit security levels. Within the reported benchmarks,
+ECC outperforms RSA in key generation and signing at every level, and the
+gap widens as the security level increases. RSA key generation grows from 352~ms at 128 bits to
+10.8s at 192 bits and 62.4s at 256 bits, whereas ECC key generation stays
+between 0.02 and 0.22 ms. This corresponds to ECC being roughly
+$1.7\times10^{4}$, $5.1\times10^{4}$, and $2.8\times10^{5}$ times faster at
+the three levels. Signing follows the same trend, with RSA-PSS being
+$58\times$, $164\times$, and $679\times$ slower than ECDSA. As a result, a
+complete ephemeral key exchange costs RSA 355~ms, 10.9~s, and 62.7~s,
+compared with 0.18, 1.34, and 1.37~ms for ECDH.
+
+Verification is the exception. Because RSA uses a small public exponent,
+verification is faster than ECDSA at 128 bits (0.069 vs.\ 0.096~ms) and 192
+bits (0.300 vs.\ 0.642~ms). At 256 bits the advantage reverses (1.17 vs.\
+0.758~ms), as the cost of RSA modular exponentiation with a 15360-bit modulus
+catches up.
+
+ECC is also more compact. Public keys are 91, 120, and 158 bytes for P-256,
+P-384, and P-521, compared with 422, 998, and 1958 bytes for RSA, and
+signatures are at most 139 bytes versus up to 1920 bytes. Overall, RSA's
+only advantage is fast verification at the lower levels, and its costs
+scale much more steeply with security level than ECC's. However, this advantage 
+does not have a major impact on the total length of the full exchange.
+
+\begin{table}[htbp]
+\centering
+\caption{Matched-security comparison at the 128-bit level (median time per operation).}
+\label{tab:cmp128}
+\begin{tabular}{|l|l|l|}
+\hline
+Metric & RSA-3072 / RSA-PSS & P-256 / ECDSA \\
+\hline
+Signature length & 384 bytes & 64 bytes raw \\
+\hline
+Key generation time (ms) & 352 & 0.0211 \\
+\hline
+Signing time (ms) & 2.40 & 0.0414 \\
+\hline
+Verification time (ms) & 0.0685 & 0.0961 \\
+\hline
+Public-key encoded size & 422 bytes & 65 bytes \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\columnwidth]{128bit.png}
+\caption{Median time per operation at 128-bit security.}
+\label{fig:time128}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Matched-security comparison at the 192-bit level (median time per operation).}
+\label{tab:cmp192}
+\begin{tabular}{|l|l|l|}
+\hline
+Metric & RSA-7680 / RSA-PSS & P-384 / ECDSA \\
+\hline
+Signature length & 960 bytes & 96 bytes raw \\
+\hline
+Key generation time (ms) & 10{,}800 & 0.211 \\
+\hline
+Signing time (ms) & 48.7 & 0.297 \\
+\hline
+Verification time (ms) & 0.300 & 0.642 \\
+\hline
+Public-key encoded size & 998 bytes & 97 bytes \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\columnwidth]{192bit.png}
+\caption{Median time per operation at 192-bit security.}
+\label{fig:time192}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Matched-security comparison at the 256-bit level (median time per operation).}
+\label{tab:cmp256}
+\begin{tabular}{|l|l|l|}
+\hline
+Metric & RSA-15360 / RSA-PSS & P-521 / ECDSA \\
+\hline
+Signature length & 1920 bytes & 132 bytes raw \\
+\hline
+Key generation time (ms) & 62{,}400 & 0.221 \\
+\hline
+Signing time (ms) & 268 & 0.395 \\
+\hline
+Verification time (ms) & 1.17 & 0.758 \\
+\hline
+Public-key encoded size & 1958 bytes & 133 bytes \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\columnwidth]{256bit.png}
+\caption{Median time per operation at 256-bit security.}
+\label{fig:time256}
+\end{figure}
+
+\section{Discussion and Recommendations}
+
+If a system is constrained (bandwidth, storage, private key computation), using ECC could be an appealing migration option. Provided that all elements of the system can support the correct curves and are implemented correctly. If a legacy system has well established RSA solutions with no performance concerns, then it might make sense to stick with RSA due to the risk associated with migration. It is important to not just use a micro-reference to justify this choice. All aspects of the solution need to be considered including equivalent security, workload, encoding, certificates, hardware, and software life-cycles. Plus, a migration plan for post quantum.
+
+\section{Conclusion}
+
+RSA and ECC offer different engineering options for similar key security. The principal contribution here is a comparison of security level, time and size, together with discussion of hardware dependence and future quantum risk. The reported benchmarks show that ECC has a major time and size advantage over RSA under the tested conditions. Cross-hardware comparison benchmarks have not yet been run, so differences across devices will be noted in the second report. The recommendations are therefore limited to the available results and do not establish one solution as the current standard over all others.
+
+
+\begin{thebibliography}{00}
+\bibitem{b1} National Institute of Standards and Technology, “Digital Signature Standard (DSS),” FIPS 186-5, 2023.
+\bibitem{b2} NIST, “Recommendation for Key Management: Part 1—General,” SP 800-57 Part 1 Rev. 5, 2020.
+\bibitem{b3} D. Boneh, “Twenty years of attacks on the RSA cryptosystem,” Notices of the AMS, vol. 46, no. 2, pp. 203–213, 1999.
+\bibitem{b4} J. W. Bos et al., “Elliptic curve cryptography in practice,” Financial Cryptography and Data Security, pp. 157–175, 2014.
+\bibitem{b5} P. W. Shor, “Algorithms for quantum computation: discrete logarithms and factoring,” Proc. 35th Annual Symposium on Foundations of Computer Science, pp. 124–134, 1994.
+\bibitem{b6} NIST, “Module-Lattice-Based Key-Encapsulation Mechanism Standard,” FIPS 203, 2024.
+\bibitem{b7} NIST, “Module-Lattice-Based Digital Signature Standard,” FIPS 204, 2024.
+\bibitem{b8} NIST, “Stateless Hash-Based Digital Signature Standard,” FIPS 205, 2024.
+\bibitem{b9} S. Y. Yan, Cryptanalytic Attacks on RSA. Springer, 2007. 
+\bibitem{b10} M. Imam, Q. M. Areeb, A. Alturki, and F. Anwer, “Systematic and critical review of RSA based public key cryptographic schemes: Past and present status,” IEEE Access, vol. 9, pp. 155949–155976, 2021. 
+\bibitem{b11} M. Shand and J. Vuillemin, “Fast implementations of RSA cryptography,” in Proceedings of the 11th IEEE Symposium on Computer Arithmetic, pp. 252–259, 1993.
+\end{thebibliography}
+\end{document}
